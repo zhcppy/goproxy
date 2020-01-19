@@ -1,0 +1,10 @@
+version: "3"
+services:
+  goproxy:
+    image: goproxy/goproxy:latest
+    command: "-listen=0.0.0.0:8081 -cache=/go"
+    ports:
+    - "8081:8081"
+    restart: always
+    volumes:
+      - $HOME/go:/go
