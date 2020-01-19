@@ -89,10 +89,7 @@ func NewRouter(server *Server, proxyUrl, pattern, downRoot string) *Router {
 		}
 		file := filepath.Join(downRoot, r.Request.URL.Path)
 		os.MkdirAll(path.Dir(file), os.ModePerm)
-		if err = renameio.WriteFile(file, buf, 0666); err != nil {
-			return err
-		}
-		return nil
+		return renameio.WriteFile(file, buf, 0666)
 	}
 	rt.pattern = pattern
 	rt.downloadRoot = downRoot
@@ -214,4 +211,3 @@ func GlobsMatchPath(globs, target string) bool {
 	}
 	return false
 }
-

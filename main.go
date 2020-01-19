@@ -62,9 +62,9 @@ func main() {
 	if proxyUrl != "" {
 		log.Printf("ProxyUrl: %s\n", proxyUrl)
 		log.Printf("Exclude: %s\n", exclude)
-		handle = &logger{proxy.NewRouter(proxyServer, exclude, proxyUrl, downloadRoot)}
+		handle = &httpHandler{proxy.NewRouter(proxyServer, exclude, proxyUrl, downloadRoot)}
 	} else {
-		handle = &logger{proxyServer}
+		handle = &httpHandler{proxyServer}
 	}
 
 	httpServer := &http.Server{Addr: listen, Handler: handle}
@@ -121,9 +121,16 @@ func goJSON(dst interface{}, command ...string) error {
 	return nil
 }
 
-// A logger is an http.Handler that logs traffic to standard error.
-type logger struct {
-	h http.Handler
+// Just to print the log
+type httpHandler struct {
+	handler http.Handler
+}
+
+func (h *httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	rl := &responseLogger{code: 200, ResponseWriter: w}
+	h.handler.ServeHTTP(rl, r)
+	log.Printf("%.3fs %d %s\n", time.Since(start).Seconds(), rl.code, r.URL)
 }
 
 type responseLogger struct {
@@ -134,12 +141,6 @@ type responseLogger struct {
 func (r *responseLogger) WriteHeader(code int) {
 	r.code = code
 	r.ResponseWriter.WriteHeader(code)
-}
-func (l *logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
-	rl := &responseLogger{code: 200, ResponseWriter: w}
-	l.h.ServeHTTP(rl, r)
-	log.Printf("%.3fs %d %s\n", time.Since(start).Seconds(), rl.code, r.URL)
 }
 
 // An ops is a proxy.ServerOps implementation.

@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 
 export GO111MODULE=on
-#export GOPROXY='http://127.0.0.1:8081'
-export GOPROXY='https://goproxy.io'
+export GOPROXY='http://127.0.0.1:8081'
 export GOPATH=/tmp/go
+
+if [ "$1" ]; then
+  export GOPROXY='https://goproxy.io'
+fi
+
+cd /tmp || exit
 
 while read -r line; do
 	go get -v "${line}"

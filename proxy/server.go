@@ -120,32 +120,32 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	i := strings.Index(r.URL.Path, "/@")
-	if i < 0 {
+	index := strings.Index(r.URL.Path, "/@")
+	if index < 0 {
 		http.Error(w, "no such path", http.StatusNotFound)
 		return
 	}
-	modPath, err := module.UnescapePath(strings.TrimPrefix(r.URL.Path[:i], "/"))
+	modPath, err := module.UnescapePath(strings.TrimPrefix(r.URL.Path[:index], "/"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	what := r.URL.Path[i+len("/@"):]
+	what := r.URL.Path[index+len("/@"):]
 	const (
 		contentTypeJSON   = "application/json"
 		contentTypeText   = "text/plain; charset=UTF-8"
 		contentTypeBinary = "application/octet-stream"
 	)
 	var ctype string
-	var f File
+	var file File
 	var openErr error
 	switch what {
 	case "latest":
 		ctype = contentTypeJSON
-		f, openErr = s.ops.Latest(ctx, modPath)
+		file, openErr = s.ops.Latest(ctx, modPath)
 	case "v/list":
 		ctype = contentTypeText
-		f, openErr = s.ops.List(ctx, modPath)
+		file, openErr = s.ops.List(ctx, modPath)
 	default:
 		what = strings.TrimPrefix(what, "v/")
 		ext := path.Ext(what)
@@ -171,13 +171,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch ext {
 		case ".info":
 			ctype = "application/json"
-			f, openErr = s.ops.Info(ctx, m)
+			file, openErr = s.ops.Info(ctx, m)
 		case ".mod":
 			ctype = "text/plain; charset=UTF-8"
-			f, openErr = s.ops.GoMod(ctx, m)
+			file, openErr = s.ops.GoMod(ctx, m)
 		case ".zip":
 			ctype = "application/octet-stream"
-			f, openErr = s.ops.Zip(ctx, m)
+			file, openErr = s.ops.Zip(ctx, m)
 		default:
 			http.Error(w, "request not recognized", http.StatusNotFound)
 			return
@@ -188,8 +188,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, openErr.Error(), code)
 		return
 	}
-	defer f.Close()
-	info, err := f.Stat()
+	defer file.Close()
+	info, err := file.Stat()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -199,7 +199,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", ctype)
-	http.ServeContent(w, r, what, info.ModTime(), f)
+	http.ServeContent(w, r, what, info.ModTime(), file)
 }
 
 // MemFile returns an File containing the given in-memory content and modification time.
