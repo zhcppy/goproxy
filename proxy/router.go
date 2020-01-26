@@ -62,7 +62,6 @@ func NewRouter(server *Server, proxyUrl, pattern, downRoot string) *Router {
 
 	rt.proxy.ModifyResponse = func(r *http.Response) error {
 		if r.StatusCode != http.StatusOK {
-			log.Println("response status code:", r.StatusCode)
 			return nil
 		}
 		var buf []byte

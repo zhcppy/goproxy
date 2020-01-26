@@ -50,6 +50,8 @@ func main() {
 	flag.StringVar(&cache, "cache", os.Getenv("GOPATH"), "go modules cache dir")
 	flag.StringVar(&listen, "listen", "0.0.0.0:8081", "service listen address")
 	flag.Parse()
+	log.Printf("Exclude: %s \tListen: %s\n", exclude, listen)
+	log.Printf("ProxyUrl: %s \tCache: %s\n", proxyUrl, cache)
 
 	if exclude != "" {
 		os.Setenv("GOPRIVATE", exclude)
@@ -60,9 +62,7 @@ func main() {
 
 	var handle http.Handler
 	if proxyUrl != "" {
-		log.Printf("ProxyUrl: %s\n", proxyUrl)
-		log.Printf("Exclude: %s\n", exclude)
-		handle = &httpHandler{proxy.NewRouter(proxyServer, exclude, proxyUrl, downloadRoot)}
+		handle = &httpHandler{proxy.NewRouter(proxyServer, proxyUrl, exclude, downloadRoot)}
 	} else {
 		handle = &httpHandler{proxyServer}
 	}
@@ -128,7 +128,7 @@ type httpHandler struct {
 
 func (h *httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	rl := &responseLogger{code: 200, ResponseWriter: w}
+	rl := &responseLogger{code: http.StatusOK, ResponseWriter: w}
 	h.handler.ServeHTTP(rl, r)
 	log.Printf("%.3fs %d %s\n", time.Since(start).Seconds(), rl.code, r.URL)
 }
