@@ -16,7 +16,7 @@ gomod:
 	@go mod download
 
 image:
-	@docker build -t goproxy/goproxy .
+	@docker build -t zhcppy/goproxy .
 
 test: gomod
 	@go test -v ./...
