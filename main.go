@@ -45,17 +45,24 @@ func init() {
 
 func main() {
 	var listen, cache, proxyUrl, exclude string
+	var version bool
 	flag.StringVar(&exclude, "exclude", "", "exclude package path pattern")
 	flag.StringVar(&proxyUrl, "proxy", "https://goproxy.io", "next hop proxy for go modules")
 	flag.StringVar(&cache, "cache", os.Getenv("GOPATH"), "go modules cache dir")
 	flag.StringVar(&listen, "listen", "0.0.0.0:8081", "service listen address")
+	flag.BoolVar(&version, "v", false, "show goproxy version")
 	flag.Parse()
+
+	if version {
+		fmt.Printf("Version: %s", "v0.0.1")
+		fmt.Printf("Repo: %s", "https://github.com/zhcppy/goproxy.git")
+		return
+	}
+
 	log.Printf("Exclude: %s \tListen: %s\n", exclude, listen)
 	log.Printf("ProxyUrl: %s \tCache: %s\n", proxyUrl, cache)
 
-	if exclude != "" {
-		os.Setenv("GOPRIVATE", exclude)
-	}
+	os.Setenv("GOPRIVATE", exclude)
 
 	var downloadRoot = getDownloadRoot(cache)
 	var proxyServer = proxy.NewServer(&ops{downloadRoot: downloadRoot})
