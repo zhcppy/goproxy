@@ -18,6 +18,7 @@ import (
 	"os/signal"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -54,8 +55,10 @@ func main() {
 	flag.Parse()
 
 	if version {
-		fmt.Printf("Version: %s", "v0.0.1")
-		fmt.Printf("Repo: %s", "https://github.com/zhcppy/goproxy.git")
+		fmt.Printf("Version: %s\n", "v0.0.1")
+		fmt.Printf("Repo: %s\n", "https://github.com/zhcppy/goproxy.git")
+		fmt.Printf("Go: %s\n", runtime.Version())
+		fmt.Printf("OS: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 		return
 	}
 
